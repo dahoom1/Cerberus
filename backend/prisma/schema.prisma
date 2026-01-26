@@ -1,0 +1,141 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SubscriptionTier {
+  ANALYST
+  PRO
+  INSTITUTIONAL
+}
+
+enum ExchangeName {
+  BINANCE
+  COINBASE
+  KRAKEN
+  BYBIT
+  OKX
+  BITFINEX
+  KUCOIN
+  GATEIO
+  HUOBI
+  BITGET
+}
+
+model User {
+  id                String           @id @default(uuid())
+  email             String           @unique
+  password          String
+  firstName         String?
+  lastName          String?
+  isEmailVerified   Boolean          @default(false)
+  emailVerifyToken  String?
+  emailVerifyExpiry DateTime?
+  resetPasswordToken String?
+  resetPasswordExpiry DateTime?
+  subscriptionTier  SubscriptionTier @default(ANALYST)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  
+  apiKeys           ExchangeApiKey[]
+  tradingSignals    TradingSignal[]
+  alerts            Alert[]
+  
+  @@index([email])
+}
+
+model ExchangeApiKey {
+  id          String       @id @default(uuid())
+  userId      String
+  exchange    ExchangeName
+  apiKey      String       // Encrypted
+  apiSecret   String       // Encrypted
+  passphrase  String?      // Encrypted (for some exchanges)
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, exchange])
+  @@index([userId])
+}
+
+model TradingSignal {
+  id              String      @id @default(uuid())
+  userId          String?
+  symbol          String      // e.g., "BTC/USDT"
+  exchange        ExchangeName
+  signalType      String      // "BUY", "SELL", "LONG", "SHORT"
+  confidence      Float       // 0-100
+  price           Float
+  timestamp       DateTime    @default(now())
+  indicators      Json        // Array of indicator values
+  reason          String?
+  executed        Boolean     @default(false)
+  executionPrice  Float?
+  executionTime   DateTime?
+  
+  user            User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@index([symbol, exchange])
+  @@index([timestamp])
+  @@index([userId])
+}
+
+model Alert {
+  id          String      @id @default(uuid())
+  userId      String
+  type        String      // "LIQUIDATION", "PRICE", "INDICATOR", "SIGNAL"
+  symbol      String
+  exchange    ExchangeName?
+  condition   String      // JSON string with alert conditions
+  isActive    Boolean     @default(true)
+  triggeredAt DateTime?
+  createdAt   DateTime    @default(now())
+  
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([isActive])
+}
+
+model MarketData {
+  id          String      @id @default(uuid())
+  symbol      String
+  exchange    ExchangeName
+  timeframe   String      // "1m", "5m", "15m", "1h", "4h", "1d"
+  open        Float
+  high        Float
+  low         Float
+  close       Float
+  volume      Float
+  timestamp   DateTime
+  indicators  Json?       // Calculated indicators
+  
+  @@unique([symbol, exchange, timeframe, timestamp])
+  @@index([symbol, exchange, timeframe])
+  @@index([timestamp])
+}
+
+model LiquidationZone {
+  id              String      @id @default(uuid())
+  symbol          String
+  exchange        ExchangeName
+  price           Float
+  side            String      // "LONG", "SHORT"
+  estimatedLiquidity Float
+  confidence      Float       // 0-100
+  detectedAt      DateTime    @default(now())
+  triggeredAt     DateTime?
+  
+  @@index([symbol, exchange])
+  @@index([detectedAt])
+}
