@@ -15,6 +15,7 @@ import indicatorRoutes from './routes/indicators';
 import liquidationRoutes from './routes/liquidation';
 import sentimentRoutes from './routes/sentiment';
 import performanceRoutes from './routes/performance';
+import whaleRoutes from './routes/whale';
 
 // Import services
 import { initializeSocketIO } from './services/socketService';
@@ -25,6 +26,8 @@ import { scrapeAllCoinsSentiment } from './services/twitterScraperService';
 import { scrapeNews } from './services/newsScraperService';
 import { updateTopCoins } from './services/marketCapService';
 import { monitorAllSignals } from './services/signalTrackingService';
+import { initializeWhaleMonitoring } from './services/whaleMonitoringService';
+import { aggregateAllWhaleActivity } from './services/whaleAnalysisService';
 
 dotenv.config();
 
@@ -96,6 +99,7 @@ app.use('/api/indicators', indicatorRoutes);
 app.use('/api/liquidation', liquidationRoutes);
 app.use('/api/sentiment', sentimentRoutes);
 app.use('/api/performance', performanceRoutes);
+app.use('/api/whale', whaleRoutes);
 
 // Initialize background jobs for sentiment tracking
 function initializeBackgroundJobs() {
@@ -126,10 +130,17 @@ function initializeBackgroundJobs() {
     await monitorAllSignals();
   }, 5 * 60 * 1000); // 5 minutes
 
+  // 5. Whale activity aggregation - Every 5 minutes
+  setInterval(async () => {
+    console.log('[CRON] Aggregating whale activity...');
+    await aggregateAllWhaleActivity();
+  }, 5 * 60 * 1000); // 5 minutes
+
   // Run immediately on startup (except Twitter, wait 30s to avoid startup load)
   setTimeout(() => scrapeAllCoinsSentiment(), 30000);
   setTimeout(() => scrapeNews(), 45000);
   setTimeout(() => monitorAllSignals(), 60000);
+  setTimeout(() => aggregateAllWhaleActivity(), 75000);
 
   console.log('Background jobs initialized');
 }
@@ -150,6 +161,9 @@ async function initializeServices() {
 
     // Initialize liquidation detector
     await initializeLiquidationDetector(io);
+
+    // Initialize whale monitoring
+    await initializeWhaleMonitoring(io);
 
     // Initialize background jobs
     initializeBackgroundJobs();

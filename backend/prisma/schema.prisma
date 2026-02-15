@@ -221,3 +221,99 @@ model TopCoin {
 
   @@index([marketCapRank])
 }
+
+// Whale transaction records
+model WhaleTransaction {
+  id              String   @id @default(uuid())
+
+  // Blockchain data
+  txHash          String   @unique     // Transaction hash/ID
+  blockchain      String                // "bitcoin", "ethereum", "binance-smart-chain", "solana"
+  symbol          String                // "BTC", "ETH", "BNB", "SOL", "XRP"
+  amount          Float                 // Amount in crypto (e.g., 100 BTC)
+  amountUsd       Float                 // USD value at time of transaction
+
+  // Addresses
+  fromAddress     String
+  fromOwner       String?               // "Binance", "Unknown Whale", null
+  fromType        String?               // "exchange", "whale", "unknown"
+  toAddress       String
+  toOwner         String?
+  toType          String?
+
+  // Transaction metadata
+  timestamp       DateTime
+  blockNumber     Int?
+  confirmations   Int?
+  transactionType String                // "exchange_inflow", "exchange_outflow", "whale_movement", "unknown"
+
+  // Alert flags
+  significance    String   @default("medium")  // "low", "medium", "high", "critical"
+  alertSent       Boolean  @default(false)
+
+  // Source tracking
+  source          String   @default("blockchain-api")
+  rawData         Json?                 // Store original API response for debugging
+
+  createdAt       DateTime @default(now())
+
+  @@index([symbol, timestamp])
+  @@index([transactionType, timestamp])
+  @@index([blockchain, timestamp])
+  @@index([fromOwner])
+  @@index([toOwner])
+  @@index([significance])
+}
+
+// Known exchange/whale wallet addresses
+model WhaleWallet {
+  id              String   @id @default(uuid())
+  address         String   @unique
+  blockchain      String                // "bitcoin", "ethereum", etc.
+  ownerName       String                // "Binance Cold Wallet #1", "Coinbase Hot Wallet"
+  ownerType       String                // "exchange", "whale", "custodian", "miner"
+  exchange        String?               // "BINANCE", "COINBASE", "KRAKEN" (if exchange)
+
+  // Metadata
+  isVerified      Boolean  @default(false)
+  lastSeen        DateTime?
+  totalTxCount    Int      @default(0)
+  notes           String?
+  source          String?               // "manual", "etherscan", "community"
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([blockchain, ownerType])
+  @@index([exchange])
+}
+
+// Aggregated whale activity (for performance)
+model WhaleActivitySummary {
+  id              String   @id @default(uuid())
+
+  symbol          String
+  timeframe       String                // "1h", "24h", "7d"
+
+  // Flow metrics
+  exchangeInflow  Float    @default(0)  // Total USD flowing into exchanges
+  exchangeOutflow Float    @default(0)  // Total USD flowing out of exchanges
+  netFlow         Float    @default(0)  // Negative = accumulation
+
+  // Transaction counts
+  inflowTxCount   Int      @default(0)
+  outflowTxCount  Int      @default(0)
+
+  // Largest transaction
+  largestTxAmount Float?
+  largestTxHash   String?
+
+  // Time window
+  periodStart     DateTime
+  periodEnd       DateTime
+  updatedAt       DateTime @updatedAt
+
+  @@unique([symbol, timeframe, periodStart])
+  @@index([symbol, timeframe])
+  @@index([periodStart])
+}

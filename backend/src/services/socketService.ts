@@ -54,6 +54,26 @@ export const initializeSocketIO = (io: Server): void => {
       socket.leave(`liquidation:${data.exchange}:${data.symbol}`);
     });
 
+    // Subscribe to whale alerts
+    socket.on('subscribe-whale', (data: { symbol?: string }) => {
+      if (data.symbol) {
+        socket.join(`whale:${data.symbol}`);
+        console.log(`Client ${socket.id} subscribed to whale alerts for ${data.symbol}`);
+      } else {
+        socket.join('whale:all');
+        console.log(`Client ${socket.id} subscribed to all whale alerts`);
+      }
+    });
+
+    // Unsubscribe from whale alerts
+    socket.on('unsubscribe-whale', (data: { symbol?: string }) => {
+      if (data.symbol) {
+        socket.leave(`whale:${data.symbol}`);
+      } else {
+        socket.leave('whale:all');
+      }
+    });
+
     socket.on('disconnect', () => {
       console.log(`Client disconnected: ${socket.id}`);
     });
