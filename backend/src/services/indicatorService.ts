@@ -175,14 +175,12 @@ export const calculateROC = (close: number[], period: number = 12): number[] => 
 };
 
 export const calculateMomentum = (close: number[], period: number = 10): number[] => {
-  try {
-    // Manual momentum calculation (current price - price N periods ago)
-    const momentum: number[] = [];
-    for (let i = period; i < close.length; i++) {
-      momentum.push(close[i] - close[i - period]);
-    }
-    return new Array(period).fill(0).concat(momentum);
+  // Manual momentum calculation (current price - price N periods ago)
+  const momentum: number[] = [];
+  for (let i = period; i < close.length; i++) {
+    momentum.push(close[i] - close[i - period]);
   }
+  return new Array(period).fill(0).concat(momentum);
 };
 
 // VOLATILITY INDICATORS
