@@ -5,6 +5,10 @@ import { prisma } from '../index';
 export interface AuthRequest extends Request {
   userId?: string;
   user?: any;
+  body: any;
+  query: any;
+  params: any;
+  headers: any;
 }
 
 export const authenticate = async (

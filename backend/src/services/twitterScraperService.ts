@@ -98,7 +98,7 @@ export const scrapeAllCoinsSentiment = async (): Promise<void> => {
               sentiment: sentiment.compound,
               inverseSentiment: sentiment.inverse,
               volume: tweets.length,
-              rawData: tweets.slice(0, 10), // Save sample tweets
+              rawData: tweets.slice(0, 10) as any, // Save sample tweets
             },
           });
 

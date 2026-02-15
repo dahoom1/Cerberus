@@ -9,7 +9,6 @@ import {
   CCI,
   WilliamsR,
   ROC,
-  Momentum,
   BollingerBands,
   ATR,
   OBV,
@@ -79,13 +78,13 @@ export const calculateMACD = (close: number[]): any[] => {
   });
 };
 
-export const calculateADX = (high: number[], low: number[], close: number[], period: number = 14): number[] => {
+export const calculateADX = (high: number[], low: number[], close: number[], period: number = 14): any[] => {
   return ADX.calculate({
     high,
     low,
     close,
     period,
-  });
+  }) as any[];
 };
 
 export const calculatePSAR = (high: number[], low: number[], step: number = 0.02, max: number = 0.2): number[] => {
@@ -177,18 +176,7 @@ export const calculateROC = (close: number[], period: number = 12): number[] => 
 
 export const calculateMomentum = (close: number[], period: number = 10): number[] => {
   try {
-    if (!Momentum || typeof Momentum.calculate !== 'function') {
-      // Fallback: manual momentum calculation
-      const momentum: number[] = [];
-      for (let i = period; i < close.length; i++) {
-        momentum.push(close[i] - close[i - period]);
-      }
-      return new Array(period).fill(0).concat(momentum);
-    }
-    return Momentum.calculate({ values: close, period });
-  } catch (error) {
-    console.error('Momentum calculation error:', error);
-    // Return manual calculation as fallback
+    // Manual momentum calculation (current price - price N periods ago)
     const momentum: number[] = [];
     for (let i = period; i < close.length; i++) {
       momentum.push(close[i] - close[i - period]);

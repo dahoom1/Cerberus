@@ -515,7 +515,7 @@ export const monitorLiquidationZones = async (
             stopLoss2: zone.stopLoss2,
             takeProfit1: zone.takeProfit1,
             takeProfit2: zone.takeProfit2,
-            heatmapData: zone.heatmapData,
+            heatmapData: zone.heatmapData as any,
           },
         });
       }

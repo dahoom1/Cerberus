@@ -5,7 +5,7 @@ import { decrypt } from '../utils/encryption';
 
 export interface ExchangeConfig {
   name: string;
-  exchange: ccxt.Exchange;
+  exchange: any;
   isConnected: boolean;
 }
 
