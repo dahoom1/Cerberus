@@ -84,3 +84,6 @@ pnpm-debug.log*
 .cache/
 temp/
 tmp/
+
+# Claude Code local files
+.claude/

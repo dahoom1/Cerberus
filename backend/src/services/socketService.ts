@@ -59,3 +59,20 @@ export const initializeSocketIO = (io: Server): void => {
     });
   });
 };
+
+/**
+ * Broadcast signal performance update to all connected clients
+ * Called by signalTrackingService after updating performance
+ */
+export const broadcastSignalUpdate = (
+  io: Server,
+  signalId: string,
+  performance: any
+): void => {
+  io.emit('signal-performance-update', {
+    signalId,
+    currentPrice: performance.currentPrice,
+    currentPnL: performance.currentPnL,
+    timestamp: Date.now(),
+  });
+};

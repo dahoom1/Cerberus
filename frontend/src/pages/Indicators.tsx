@@ -1,7 +1,12 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import axios from 'axios'
+import PageTransition from '../components/PageTransition'
+import AnimatedCard from '../components/AnimatedCard'
+import AnimatedButton from '../components/AnimatedButton'
+import { CardSkeleton } from '../components/SkeletonLoader'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_URL = import.meta.eenv.VITE_API_URL || 'http://localhost:5000/api'
 
 const Indicators = () => {
   const [indicators, setIndicators] = useState<any>(null)
@@ -27,85 +32,104 @@ const Indicators = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Technical Indicators</h1>
-        <p className="mt-2 text-muted-foreground">View calculated technical indicators</p>
-      </div>
-
-      <div className="bg-card border rounded-lg p-6">
-        <h2 className="text-xl font-semibold text-card-foreground mb-4">Calculate Indicators</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Exchange</label>
-            <select
-              value={formData.exchange}
-              onChange={(e) => setFormData({ ...formData, exchange: e.target.value })}
-              className="w-full px-3 py-2 border border-input bg-background rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-            >
-              <option value="BINANCE">Binance</option>
-              <option value="BYBIT">Bybit</option>
-              <option value="OKX">OKX</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Symbol</label>
-            <input
-              type="text"
-              value={formData.symbol}
-              onChange={(e) => setFormData({ ...formData, symbol: e.target.value })}
-              placeholder="BTC/USDT"
-              className="w-full px-3 py-2 border border-input bg-background rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Timeframe</label>
-            <select
-              value={formData.timeframe}
-              onChange={(e) => setFormData({ ...formData, timeframe: e.target.value })}
-              className="w-full px-3 py-2 border border-input bg-background rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-            >
-              <option value="1h">1h</option>
-              <option value="4h">4h</option>
-              <option value="1d">1d</option>
-            </select>
-          </div>
-        </div>
-        <button
-          onClick={fetchIndicators}
-          disabled={loading}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
+    <PageTransition>
+      <div className="space-y-6">
+        {/* Animated header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
         >
-          {loading ? 'Calculating...' : 'Calculate Indicators'}
-        </button>
-      </div>
+          <h1 className="text-3xl font-bold text-gradient">Technical Indicators</h1>
+          <p className="mt-2 text-muted-foreground">View calculated technical indicators</p>
+        </motion.div>
 
-      {indicators && (
-        <div className="bg-card border rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-card-foreground mb-4">Indicator Values</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Object.entries(indicators).map(([key, value]: [string, any]) => {
-              if (Array.isArray(value) && value.length > 0) {
-                const lastValue = value[value.length - 1]
-                return (
-                  <div key={key} className="border rounded-lg p-4">
-                    <h3 className="font-semibold text-foreground mb-2">{key.toUpperCase()}</h3>
-                    {typeof lastValue === 'object' ? (
-                      <pre className="text-xs text-muted-foreground overflow-auto">
-                        {JSON.stringify(lastValue, null, 2)}
-                      </pre>
-                    ) : (
-                      <p className="text-lg font-bold text-primary">{lastValue?.toFixed?.(4) || lastValue}</p>
-                    )}
-                  </div>
-                )
-              }
-              return null
-            })}
+        {/* Calculate form */}
+        <AnimatedCard delay={0.1} glass>
+          <h2 className="text-xl font-semibold text-card-foreground mb-4">Calculate Indicators</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Exchange</label>
+              <select
+                value={formData.exchange}
+                onChange={(e) => setFormData({ ...formData, exchange: e.target.value })}
+                className="w-full px-4 py-3 bg-card/50 border border-white/10 rounded-lg focus:border-cyber-purple focus:ring-2 focus:ring-cyber-purple/50 transition-all duration-200 backdrop-blur-sm"
+              >
+                <option value="BINANCE">Binance</option>
+                <option value="BYBIT">Bybit</option>
+                <option value="OKX">OKX</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Symbol</label>
+              <input
+                type="text"
+                value={formData.symbol}
+                onChange={(e) => setFormData({ ...formData, symbol: e.target.value })}
+                placeholder="BTC/USDT"
+                className="w-full px-4 py-3 bg-card/50 border border-white/10 rounded-lg focus:border-cyber-purple focus:ring-2 focus:ring-cyber-purple/50 transition-all duration-200 backdrop-blur-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Timeframe</label>
+              <select
+                value={formData.timeframe}
+                onChange={(e) => setFormData({ ...formData, timeframe: e.target.value })}
+                className="w-full px-4 py-3 bg-card/50 border border-white/10 rounded-lg focus:border-cyber-purple focus:ring-2 focus:ring-cyber-purple/50 transition-all duration-200 backdrop-blur-sm"
+              >
+                <option value="1h">1h</option>
+                <option value="4h">4h</option>
+                <option value="1d">1d</option>
+              </select>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+          <AnimatedButton
+            onClick={fetchIndicators}
+            variant="primary"
+            isLoading={loading}
+          >
+            Calculate Indicators
+          </AnimatedButton>
+        </AnimatedCard>
+
+        {/* Indicators grid */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map(i => <CardSkeleton key={i} />)}
+          </div>
+        ) : indicators && (
+          <AnimatedCard delay={0.2} glass>
+            <h2 className="text-xl font-semibold text-card-foreground mb-4">Indicator Values</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Object.entries(indicators).map(([key, value]: [string, any], idx) => {
+                if (Array.isArray(value) && value.length > 0) {
+                  const lastValue = value[value.length - 1]
+                  return (
+                    <motion.div
+                      key={key}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: idx * 0.05 }}
+                      whileHover={{ scale: 1.02, boxShadow: '0 8px 20px rgba(147, 51, 234, 0.3)' }}
+                      className="border border-white/10 rounded-lg p-4 bg-gradient-to-br from-card to-card/50 hover-glow cursor-pointer"
+                    >
+                      <h3 className="font-semibold text-gradient mb-2">{key.toUpperCase()}</h3>
+                      {typeof lastValue === 'object' ? (
+                        <pre className="text-xs text-muted-foreground overflow-auto">
+                          {JSON.stringify(lastValue, null, 2)}
+                        </pre>
+                      ) : (
+                        <p className="text-2xl font-bold text-cyber-purple">{lastValue?.toFixed?.(4) || lastValue}</p>
+                      )}
+                    </motion.div>
+                  )
+                }
+                return null
+              })}
+            </div>
+          </AnimatedCard>
+        )}
+      </div>
+    </PageTransition>
   )
 }
 

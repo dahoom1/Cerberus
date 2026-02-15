@@ -82,9 +82,17 @@ model TradingSignal {
   executed        Boolean     @default(false)
   executionPrice  Float?
   executionTime   DateTime?
-  
-  user            User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
-  
+
+  // Sentiment & news fields
+  sentimentScore      Float?      // -1 to +1 from VADER
+  inverseSentiment    Float?      // Contrarian score
+  newsScore           Float?      // 0-100 news sentiment
+  sentimentWeight     Float?      // % of confidence from sentiment
+  newsWeight          Float?      // % of confidence from news
+
+  user            User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  performance     SignalPerformance?
+
   @@index([symbol, exchange])
   @@index([timestamp])
   @@index([userId])
@@ -133,9 +141,83 @@ model LiquidationZone {
   side            String      // "LONG", "SHORT"
   estimatedLiquidity Float
   confidence      Float       // 0-100
+  reasoning       Json?       // Array of confidence factors
+  suggestion      String?     // "BUY", "SELL", "NEUTRAL"
+  stopLoss1       Float?
+  stopLoss2       Float?
+  takeProfit1     Float?
+  takeProfit2     Float?
+  heatmapData     Json?       // Array of {price, intensity, liquidity}
   detectedAt      DateTime    @default(now())
   triggeredAt     DateTime?
-  
+
   @@index([symbol, exchange])
   @@index([detectedAt])
+}
+
+model SentimentData {
+  id               String   @id @default(uuid())
+  symbol           String   // "BTC", "ETH", "SOL", etc.
+  source           String   // "TWITTER", "NEWS", "REDDIT"
+  sentiment        Float    // -1 to +1 (VADER compound score)
+  inverseSentiment Float    // Contrarian score
+  volume           Int      // Number of posts/articles analyzed
+  timestamp        DateTime @default(now())
+  rawData          Json?    // Store sample posts/headlines
+
+  @@index([symbol, timestamp])
+  @@index([source, symbol])
+}
+
+model NewsArticle {
+  id          String   @id @default(uuid())
+  symbol      String   // Coin ticker
+  title       String
+  url         String   @unique
+  source      String   // "COINDESK", "COINTELEGRAPH"
+  publishedAt DateTime
+  sentiment   Float    // -1 to +1
+  score       Float    // News importance score 0-100
+  summary     String?
+
+  @@index([symbol, publishedAt])
+  @@index([publishedAt])
+}
+
+model SignalPerformance {
+  id               String         @id @default(uuid())
+  signalId         String         @unique
+  signal           TradingSignal  @relation(fields: [signalId], references: [id], onDelete: Cascade)
+
+  // Real-time tracking
+  currentPrice     Float?
+  currentPnL       Float?      // Percentage profit/loss
+  highestPrice     Float?      // Peak price during tracking
+  lowestPrice      Float?      // Lowest price during tracking
+
+  // 1-week accuracy (calculated after 7 days)
+  weekEndPrice     Float?      // Price at end of 1 week
+  directionCorrect Boolean?    // Did price move in predicted direction?
+  priceChange      Float?      // Actual percentage change
+  accuracyScore    Float?      // 0-100 final accuracy score
+  performanceTier  String?     // "EXCELLENT", "GOOD", "AVERAGE", "POOR"
+
+  // Timestamps
+  trackingStarted  DateTime  @default(now())
+  trackingEnded    DateTime?
+  lastUpdated      DateTime  @updatedAt
+
+  @@index([signalId])
+  @@index([performanceTier])
+}
+
+model TopCoin {
+  id            String   @id @default(uuid())
+  symbol        String   @unique // "BTC", "ETH"
+  name          String            // "Bitcoin", "Ethereum"
+  marketCapRank Int
+  marketCap     Float
+  lastUpdated   DateTime @default(now())
+
+  @@index([marketCapRank])
 }
