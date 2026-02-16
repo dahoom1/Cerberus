@@ -14,6 +14,7 @@ const Profile = lazy(() => import('./pages/Profile'))
 const Signals = lazy(() => import('./pages/Signals'))
 const Liquidation = lazy(() => import('./pages/Liquidation'))
 const Indicators = lazy(() => import('./pages/Indicators'))
+const WhaleMonitoring = lazy(() => import('./pages/WhaleMonitoring'))
 
 function App() {
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
@@ -36,6 +37,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/signals" element={<Signals />} />
           <Route path="/liquidation" element={<Liquidation />} />
+          <Route path="/whale-monitoring" element={<WhaleMonitoring />} />
           <Route path="/indicators" element={<Indicators />} />
           <Route path="/profile" element={<Profile />} />
         </Route>
